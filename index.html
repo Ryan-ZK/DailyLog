@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>工作打卡</title>
+    <meta name="theme-color" content="#f2f2f7" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="打卡" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="apple-touch-icon" href="./icons/icon-180.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <h1 id="pageTitle">今天</h1>
+        </div>
+        <button class="text-button neutral topbar-action" id="todayMonthButton" type="button" hidden>回到本月</button>
+      </header>
+
+      <section class="app-page is-active" id="homePage" data-page="home" aria-label="首页">
+        <p class="home-date" id="homeDateText"></p>
+
+        <section class="timer-panel" aria-labelledby="timerTitle">
+          <div>
+            <p id="timerTitle" class="section-label">当前计时</p>
+            <div class="timer-display" id="timerDisplay">00:00:00</div>
+            <p class="timer-subtitle" id="timerSubtitle">尚未开始</p>
+          </div>
+          <button class="primary-action" id="timerButton" type="button">开始</button>
+        </section>
+      </section>
+
+      <section class="app-page" id="calendarPage" data-page="calendar" aria-label="日历" hidden>
+        <section class="calendar-panel" aria-label="连续日历">
+          <div class="calendar-stack" id="calendarGrid"></div>
+        </section>
+      </section>
+
+      <section class="app-page" id="statsPage" data-page="stats" aria-label="统计和打卡记录" hidden>
+        <section class="stats-panel" aria-labelledby="statsTitle">
+          <div class="section-heading stats-heading">
+            <div>
+              <p class="section-label">统计</p>
+              <h2 id="statsTitle">时间范围</h2>
+            </div>
+            <select id="rangeSelect" aria-label="统计范围">
+              <option value="7">近 7 天</option>
+              <option value="30" selected>近 30 天</option>
+              <option value="90">近 90 天</option>
+              <option value="month">本月</option>
+              <option value="all">全部</option>
+            </select>
+          </div>
+          <div class="stat-grid">
+            <article class="stat-card">
+              <span>次数</span>
+              <strong id="countStat">0</strong>
+            </article>
+            <article class="stat-card">
+              <span>总时长</span>
+              <strong id="totalStat">0 秒</strong>
+            </article>
+            <article class="stat-card">
+              <span>平均</span>
+              <strong id="averageStat">0 秒</strong>
+            </article>
+          </div>
+        </section>
+
+        <section class="data-panel" aria-labelledby="dataTitle">
+          <div class="section-heading">
+            <div>
+              <p class="section-label">数据</p>
+              <h2 id="dataTitle">备份</h2>
+            </div>
+          </div>
+          <div class="backup-actions">
+            <button class="backup-button" id="exportBackupButton" type="button">导出备份</button>
+            <button class="backup-button secondary" id="importBackupButton" type="button">导入备份</button>
+            <input id="backupFileInput" type="file" accept="application/json,.json" hidden />
+          </div>
+        </section>
+
+        <section class="records-panel" aria-labelledby="recordsTitle">
+          <div class="section-heading records-heading">
+            <div>
+              <p class="section-label">记录</p>
+              <h2 id="recordsTitle">最近打卡</h2>
+            </div>
+          </div>
+          <ol class="record-list" id="recordList"></ol>
+        </section>
+      </section>
+
+      <nav class="bottom-tabs" aria-label="页面导航">
+        <button class="tab-button is-active" type="button" data-target-page="home" aria-current="page">
+          <span class="tab-icon tab-icon-home" aria-hidden="true"></span>
+          <span>首页</span>
+        </button>
+        <button class="tab-button" type="button" data-target-page="calendar">
+          <span class="tab-icon tab-icon-calendar" aria-hidden="true"></span>
+          <span>日历</span>
+        </button>
+        <button class="tab-button" type="button" data-target-page="stats">
+          <span class="tab-icon tab-icon-stats" aria-hidden="true"></span>
+          <span>统计</span>
+        </button>
+      </nav>
+    </main>
+
+    <script src="./app.js"></script>
+    <script>
+      if ("serviceWorker" in navigator && location.protocol !== "file:") {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("./service-worker.js");
+        });
+      }
+    </script>
+  </body>
+</html>

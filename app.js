@@ -18,6 +18,7 @@ const pageTitle = document.querySelector("#pageTitle");
 const pages = document.querySelectorAll("[data-page]");
 const tabButtons = document.querySelectorAll("[data-target-page]");
 const homeDateText = document.querySelector("#homeDateText");
+const statsTopActions = document.querySelector("#statsTopActions");
 
 let records = readRecords();
 let activeStart = localStorage.getItem(ACTIVE_KEY);
@@ -91,6 +92,7 @@ function formatClock(ms) {
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
+  if (!hours) return `${pad(minutes)}:${pad(seconds)}`;
   return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
 }
 
@@ -100,9 +102,9 @@ function formatDuration(ms) {
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
 
-  if (hours) return `${hours} 小时 ${minutes} 分 ${seconds} 秒`;
-  if (minutes) return `${minutes} 分 ${seconds} 秒`;
-  return `${seconds} 秒`;
+  if (hours) return `${hours}h${minutes}m${seconds}s`;
+  if (minutes) return `${minutes}m${seconds}s`;
+  return `${seconds}s`;
 }
 
 function dateKey(date) {
@@ -125,19 +127,38 @@ function formatTime(date) {
   }).format(date);
 }
 
-function formatFullDate(date) {
+function formatShortTime(date) {
   return new Intl.DateTimeFormat("zh-CN", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
+function formatRecordDate(date) {
+  return new Intl.DateTimeFormat("zh-CN", {
+    month: "long",
+    day: "numeric",
+  }).format(date);
+}
+
+function formatFullDate(date) {
+  const parts = new Intl.DateTimeFormat("zh-CN", {
     year: "numeric",
     month: "long",
     day: "numeric",
     weekday: "long",
-  }).format(date);
+  }).formatToParts(date);
+  const year = parts.find((part) => part.type === "year")?.value || "";
+  const month = parts.find((part) => part.type === "month")?.value || "";
+  const day = parts.find((part) => part.type === "day")?.value || "";
+  const weekday = parts.find((part) => part.type === "weekday")?.value || "";
+  return `${year}年${month}月${day}日 ${weekday}`;
 }
 
 function updateTimer() {
   if (!activeStart) {
-    timerDisplay.textContent = "00:00:00";
-    timerSubtitle.textContent = "尚未开始";
+    timerDisplay.textContent = "00:00";
+    timerSubtitle.textContent = "点击开始";
     timerButton.textContent = "开始";
     timerButton.classList.remove("running");
     return;
@@ -201,7 +222,7 @@ function createWeekdayRow() {
   const row = document.createElement("div");
   row.className = "weekday-row";
   row.setAttribute("aria-hidden", "true");
-  ["一", "二", "三", "四", "五", "六", "日"].forEach((day) => {
+  ["日", "一", "二", "三", "四", "五", "六"].forEach((day) => {
     const label = document.createElement("span");
     label.textContent = day;
     row.append(label);
@@ -214,7 +235,7 @@ function renderMonth(monthDate, counts, todayKey) {
   const month = monthDate.getMonth();
   const firstDay = new Date(year, month, 1);
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const mondayOffset = (firstDay.getDay() + 6) % 7;
+  const sundayOffset = firstDay.getDay();
 
   const section = document.createElement("section");
   section.className = "calendar-month";
@@ -230,7 +251,7 @@ function renderMonth(monthDate, counts, todayKey) {
   const grid = document.createElement("div");
   grid.className = "calendar-grid";
 
-  for (let i = 0; i < mondayOffset; i += 1) {
+  for (let i = 0; i < sundayOffset; i += 1) {
     const empty = document.createElement("div");
     empty.className = "calendar-day is-empty";
     grid.append(empty);
@@ -312,7 +333,7 @@ function renderStats() {
 
   countStat.textContent = String(scopedRecords.length);
   totalStat.textContent = formatDuration(total);
-  averageStat.textContent = scopedRecords.length ? formatDuration(total / scopedRecords.length) : "0 秒";
+  averageStat.textContent = scopedRecords.length ? formatDuration(total / scopedRecords.length) : "0s";
 }
 
 function renderRecords() {
@@ -336,8 +357,8 @@ function renderRecords() {
     item.className = "record-item";
     item.innerHTML = `
       <div>
-        <p class="record-date">${formatDate(start)}</p>
-        <p class="record-time">${formatTime(start)} - ${formatTime(end)}</p>
+        <p class="record-date">${formatRecordDate(start)}</p>
+        <p class="record-time">${formatShortTime(start)}–${formatShortTime(end)}</p>
       </div>
       <div class="record-actions">
         <span class="record-duration">${formatDuration(end - start)}</span>
@@ -419,6 +440,7 @@ function showPage(pageName) {
   const meta = pageMeta[pageName] || pageMeta.home;
   pageTitle.textContent = meta.title;
   todayMonthButton.hidden = pageName !== "calendar";
+  statsTopActions.hidden = pageName !== "stats";
 
   pages.forEach((page) => {
     const isActive = page.dataset.page === pageName;

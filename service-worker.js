@@ -1,4 +1,4 @@
-const CACHE_NAME = "work-punch-v2";
+const CACHE_NAME = "work-punch-v3";
 const APP_ASSETS = [
   "./",
   "./index.html",
@@ -8,6 +8,12 @@ const APP_ASSETS = [
   "./icons/icon-180.png",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
+  "./icons/tab-timer.svg",
+  "./icons/tab-timer-active.svg",
+  "./icons/tab-calendar.svg",
+  "./icons/tab-calendar-active.svg",
+  "./icons/tab-stats.svg",
+  "./icons/tab-stats-active.svg",
 ];
 
 self.addEventListener("install", (event) => {

@@ -1,0 +1,19 @@
+{
+  "name": "dailylog",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build-www.mjs",
+    "cap:add:ios": "node scripts/build-www.mjs && cap add ios",
+    "cap:sync": "node scripts/build-www.mjs && cap sync ios",
+    "cap:open": "cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/core": "^7.4.4"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.4.4",
+    "@capacitor/ios": "^7.4.4"
+  }
+}

@@ -4,6 +4,7 @@ const ACTIVE_KEY = "workPunchActiveStart.v1";
 const timerDisplay = document.querySelector("#timerDisplay");
 const timerSubtitle = document.querySelector("#timerSubtitle");
 const timerButton = document.querySelector("#timerButton");
+const timerPanel = document.querySelector(".timer-panel");
 const calendarGrid = document.querySelector("#calendarGrid");
 const todayMonthButton = document.querySelector("#todayMonthButton");
 const rangeSelect = document.querySelector("#rangeSelect");
@@ -107,6 +108,36 @@ function formatDuration(ms) {
   return `${seconds}s`;
 }
 
+function formatDurationTokens(ms) {
+  const totalSeconds = Math.max(0, Math.round(ms / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (hours) {
+    return [
+      { value: hours, unit: "h" },
+      { value: minutes, unit: "m" },
+      { value: seconds, unit: "s" },
+    ];
+  }
+
+  if (minutes) {
+    return [
+      { value: minutes, unit: "m" },
+      { value: seconds, unit: "s" },
+    ];
+  }
+
+  return [{ value: seconds, unit: "s" }];
+}
+
+function renderDurationHtml(ms) {
+  return formatDurationTokens(ms)
+    .map((part) => `<span class="duration-number">${part.value}</span><span class="duration-unit">${part.unit}</span>`)
+    .join("");
+}
+
 function dateKey(date) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
@@ -142,17 +173,10 @@ function formatRecordDate(date) {
 }
 
 function formatFullDate(date) {
-  const parts = new Intl.DateTimeFormat("zh-CN", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
+  const weekday = new Intl.DateTimeFormat("zh-CN", {
     weekday: "long",
-  }).formatToParts(date);
-  const year = parts.find((part) => part.type === "year")?.value || "";
-  const month = parts.find((part) => part.type === "month")?.value || "";
-  const day = parts.find((part) => part.type === "day")?.value || "";
-  const weekday = parts.find((part) => part.type === "weekday")?.value || "";
-  return `${year}年${month}月${day}日 ${weekday}`;
+  }).format(date);
+  return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${weekday}`;
 }
 
 function updateTimer() {
@@ -161,14 +185,16 @@ function updateTimer() {
     timerSubtitle.textContent = "点击开始";
     timerButton.textContent = "开始";
     timerButton.classList.remove("running");
+    timerPanel.classList.remove("is-running");
     return;
   }
 
   const start = new Date(activeStart);
   timerDisplay.textContent = formatClock(Date.now() - start.getTime());
-  timerSubtitle.textContent = `${formatTime(start)} 开始`;
+  timerSubtitle.textContent = `${formatTime(start)}开始`;
   timerButton.textContent = "结束";
   timerButton.classList.add("running");
+  timerPanel.classList.add("is-running");
 }
 
 function toggleTimer() {
@@ -263,8 +289,8 @@ function renderMonth(monthDate, counts, todayKey) {
     const count = counts.get(key) || 0;
     const cell = document.createElement("div");
     cell.className = "calendar-day";
-    if (count) cell.classList.add("has-record");
     if (key === todayKey) cell.classList.add("is-today");
+    if (count && key !== todayKey) cell.classList.add("has-record");
     cell.setAttribute("aria-label", `${key}，${count} 次记录`);
 
     const number = document.createElement("span");
@@ -272,7 +298,7 @@ function renderMonth(monthDate, counts, todayKey) {
     number.textContent = day;
     cell.append(number);
 
-    if (count) {
+    if (key === todayKey) {
       const badge = document.createElement("span");
       badge.className = "day-count";
       cell.append(badge);
@@ -332,8 +358,8 @@ function renderStats() {
   }, 0);
 
   countStat.textContent = String(scopedRecords.length);
-  totalStat.textContent = formatDuration(total);
-  averageStat.textContent = scopedRecords.length ? formatDuration(total / scopedRecords.length) : "0s";
+  totalStat.innerHTML = renderDurationHtml(total);
+  averageStat.innerHTML = renderDurationHtml(scopedRecords.length ? total / scopedRecords.length : 0);
 }
 
 function renderRecords() {
@@ -344,7 +370,7 @@ function renderRecords() {
     const empty = document.createElement("p");
     item.className = "record-empty";
     empty.className = "empty-state";
-    empty.textContent = "还没有记录。点上面的开始，完成一次工作后结束。";
+    empty.textContent = "暂无记录";
     item.append(empty);
     recordList.append(item);
     return;
@@ -356,14 +382,10 @@ function renderRecords() {
     const item = document.createElement("li");
     item.className = "record-item";
     item.innerHTML = `
-      <div>
-        <p class="record-date">${formatRecordDate(start)}</p>
-        <p class="record-time">${formatShortTime(start)}–${formatShortTime(end)}</p>
-      </div>
-      <div class="record-actions">
-        <span class="record-duration">${formatDuration(end - start)}</span>
-        <button class="delete-record-button" type="button" data-record-id="${record.id}" aria-label="删除这条记录">删除</button>
-      </div>
+      <p class="record-date">${formatRecordDate(start)}</p>
+      <button class="delete-record-button" type="button" data-record-id="${record.id}" aria-label="删除这条记录">删除</button>
+      <span class="record-duration">${renderDurationHtml(end - start)}</span>
+      <p class="record-time">${formatShortTime(start)}-${formatShortTime(end)}</p>
     `;
     recordList.append(item);
   });
@@ -439,6 +461,7 @@ function render() {
 function showPage(pageName) {
   const meta = pageMeta[pageName] || pageMeta.home;
   pageTitle.textContent = meta.title;
+  homeDateText.hidden = pageName !== "home";
   todayMonthButton.hidden = pageName !== "calendar";
   statsTopActions.hidden = pageName !== "stats";
 

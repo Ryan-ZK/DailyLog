@@ -11,7 +11,7 @@
     <link rel="manifest" href="./manifest.json" />
     <link rel="apple-touch-icon" href="./icons/icon-180.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=20260626-statunits" />
   </head>
   <body>
     <main class="app-shell">
@@ -35,7 +35,6 @@
 
       <section class="app-page is-active" id="homePage" data-page="home" aria-label="首页">
         <p class="home-date" id="homeDateText"></p>
-
         <section class="timer-panel" aria-label="计时器">
           <div>
             <div class="timer-display" id="timerDisplay">00:00:00</div>
@@ -68,7 +67,7 @@
               <strong id="totalStat">0s</strong>
             </article>
             <article class="stat-card">
-              <span>平均</span>
+              <span>平均时长</span>
               <strong id="averageStat">0s</strong>
             </article>
           </div>
@@ -103,7 +102,7 @@
       </nav>
     </main>
 
-    <script src="./app.js"></script>
+    <script src="./app.js?v=20260626-statunits"></script>
     <script>
       if ("serviceWorker" in navigator && location.protocol !== "file:") {
         window.addEventListener("load", () => {

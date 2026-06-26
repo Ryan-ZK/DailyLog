@@ -1,4 +1,4 @@
-const CACHE_NAME = "work-punch-v3";
+const CACHE_NAME = "work-punch-v10";
 const APP_ASSETS = [
   "./",
   "./index.html",
@@ -14,6 +14,7 @@ const APP_ASSETS = [
   "./icons/tab-calendar-active.svg",
   "./icons/tab-stats.svg",
   "./icons/tab-stats-active.svg",
+  "./icons/arrow.svg",
 ];
 
 self.addEventListener("install", (event) => {
@@ -38,14 +39,17 @@ self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      return (
-        cachedResponse ||
-        fetch(event.request).catch(() => {
-          if (event.request.mode === "navigate") return caches.match("./index.html");
-          return undefined;
-        })
-      );
-    })
+    fetch(event.request)
+      .then((response) => {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, copy);
+        });
+        return response;
+      })
+      .catch(() => {
+        if (event.request.mode === "navigate") return caches.match("./index.html");
+        return caches.match(event.request);
+      })
   );
 });
